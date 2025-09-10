@@ -1,0 +1,4 @@
+0 2 * * * find /var/log/app -name "*.log" -mtime +7 -delete >> /var/log/app/cron-jobs.log 2>&1
+
+*/5 * * * * /usr/local/bin/php /var/www/html/cron/example-cron-job.php >> /var/log/app/cron-jobs.log 2>&1
+

@@ -1,0 +1,22 @@
+{# templates/partials/_pagination.html.twig #}
+
+<nav>
+    <ul class="pagination justify-content-center">
+        {# Przycisk "Poprzednia" #}
+        <li class="page-item {{ current_page <= 1 ? 'disabled' }}">
+            <a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': current_page - 1})) }}">Poprzednia</a>
+        </li>
+
+        {# Linki do poszczególnych stron #}
+        {% for i in 1..total_pages %}
+            <li class="page-item {{ i == current_page ? 'active' }}">
+                <a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': i})) }}">{{ i }}</a>
+            </li>
+        {% endfor %}
+
+        {# Przycisk "Następna" #}
+        <li class="page-item {{ current_page >= total_pages ? 'disabled' }}">
+            <a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': current_page + 1})) }}">Następna</a>
+        </li>
+    </ul>
+</nav>

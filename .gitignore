@@ -1,0 +1,26 @@
+# Symfony / Composer
+/app/var/
+/app/vendor/
+/app/public/bundles/
+/app/.env.local
+/app/.env.local.php
+/app/.env.*.local
+
+# PHPUnit
+/app/.phpunit.cache/
+/app/phpunit.xml
+
+# Docker & Environment
+.env
+.env.local
+*.env
+*.env.*
+!*.env.dist
+!*.env.example
+
+# Logs
+/logs/
+
+# IDE & OS
+/.idea/
+.DS_Store
