@@ -1,81 +1,81 @@
-# Czytelnia
+# Reader
 
-Aplikacja webowa do zapisywania i streszczania artykułów z podanego adresu URL.
+A web application to save and summarize articles from a given URL.
 
-## Opis
+## Description
 
-Projekt "Czytelnia" to aplikacja oparta na frameworku Symfony, która umożliwia użytkownikom dodawanie artykułów poprzez podanie ich adresu URL. Aplikacja następnie pobiera treść artykułu, generuje jego podsumowanie i zapisuje w bazie danych. Użytkownik może przeglądać listę dodanych streszczeń.
+The "Reader" project is an application based on the Symfony framework that allows users to add articles by providing their URL. The application then downloads the content of the article, generates its summary and saves it in the database. The user can view the list of added summaries.
 
-Aplikacja jest w pełni skonteneryzowana przy użyciu Docker i Docker Compose.
+The application is fully containerized using Docker and Docker Compose.
 
-## Technologie
+## Technology
 
-*   **Backend:** PHP 8.2+ / Symfony 6.4+
-*   **Baza danych:** SQLite (dla środowiska deweloperskiego), Doctrine ORM
-*   **Konteneryzacja:** Docker, Docker Compose
-*   **Serwer WWW:** Nginx
-*   **Testy:** PHPUnit
+* **Backend:** PHP 8.2+ / Symfony 6.4+
+* **Database:** SQLite (for the development environment), Doctrine ORM
+* **Containerization:** Docker, Docker Compose
+* **Web Server:** Nginx
+* **Tests:** PHPUnit
 
-## Wymagania
+## Requirements
 
-*   Docker
-*   Docker Compose
+*Docker
+* Docker Compose
 
-## Instalacja i uruchomienie
+## Installation and commissioning
 
-1.  **Sklonuj repozytorium:**
-    ```bash
+1. **Clone repository:**
+    '''bash
     git clone <adres-repozytorium>
-    cd czytelnia
+    CD Reading Room
     ```
 
-2.  **Konfiguracja środowiska:**
-    Projekt wykorzystuje zmienne środowiskowe. Skopiuj plik `.env` do `.env.local` i dostosuj go w razie potrzeby.
-    ```bash
+2. **Environment Configuration:**
+    The design uses environmental variables. Copy the '.env' file to '.env.local' and customize it as needed.
+    '''bash
     cp .env .env.local
     ```
-    Domyślna konfiguracja jest przystosowana do uruchomienia lokalnego z użyciem Docker.
+    The default configuration is designed to run locally with Docker.
 
-3.  **Zbuduj i uruchom kontenery Docker:**
-    ```bash
+3. Build and run Docker containers:**
+    '''bash
     docker-compose up -d --build
     ```
 
-4.  **Zainstaluj zależności Composer:**
-    Polecenie należy wykonać wewnątrz kontenera `app`.
-    ```bash
+4. **Install Composer Dependencies:**
+    The command must be executed inside the 'app' container.
+    '''bash
     docker-compose exec app composer install
     ```
 
-5.  **Uruchom migracje bazy danych:**
-    Aby utworzyć schemat bazy danych, wykonaj następującą komendę:
-    ```bash
-    docker-compose exec app php bin/console doctrine:migrations:migrate
+5. **Run Database Migrations:**
+    To create a database schema, run the following command:
+    '''bash
+    Docker-Compose Exec App PHP Bin/Console Doctrine:Migrations:Migrate
     ```
 
-6.  **Aplikacja jest gotowa!**
-    Aplikacja powinna być dostępna pod adresem [http://localhost:8888](http://localhost:8888) (zgodnie z konfiguracją w `docker-compose.yml`).
+6. **The app is ready!**
+    The application should be available at [http://localhost:8888](http://localhost:8888) (as configured in 'docker-compose.yml').
 
-## Użycie
+## Usage
 
-### Interfejs webowy
+### Web interface
 
-Po wejściu na stronę główną [http://localhost:8888](http://localhost:8888) zobaczysz listę streszczonych artykułów. Możesz dodać nowy artykuł, klikając odpowiedni przycisk i podając adres URL.
+When you enter the [http://localhost:8888](http://localhost:8888) homepage, you will see a list of summarized articles. You can add a new article by clicking on the corresponding button and entering the URL.
 
-### Linia komend (CLI)
+### Command Line (CLI)
 
-Możesz również dodać nowy artykuł za pomocą komendy Symfony:
-```bash
+You can also add a new article using the Symfony command:
+'''bash
 docker-compose exec app php bin/console app:add-article <adres-url-artykulu>
 ```
-Na przykład:
-```bash
+For example:
+'''bash
 docker-compose exec app php bin/console app:add-article "https://example.com/news/some-interesting-article"
 ```
 
-## Testy
+## Tests
 
-Aby uruchomić testy jednostkowe i integracyjne, użyj PHPUnit wewnątrz kontenera aplikacji:
-```bash
+To run unit and integration tests, use PHPUnit inside the application container:
+'''bash
 docker-compose exec app php bin/phpunit
 ```
