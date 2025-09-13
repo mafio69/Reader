@@ -13,6 +13,17 @@
         {% endblock %}
     </head>
     <body>
+        {% if app_environment != 'prod' %}
+            <div style="background-color: #ffcc00; color: black; font-size: 12px; text-align: center; padding: 2px 0; position: fixed; width: 100%; top: 0; left: 0; z-index: 9999;">
+                You are in <strong>{{ app_environment|capitalize }}</strong> environment
+            </div>
+            <style>
+                body {
+                    padding-top: 22px; /* adjusts content so it is not hidden behind the banner */
+                }
+            </style>
+        {% endif %}
+
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
                 <a class="navbar-brand" href="{{ path('app_summary_index') }}">Czytelnia AI</a>

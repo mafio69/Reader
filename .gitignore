@@ -24,3 +24,5 @@
 # IDE & OS
 /.idea/
 .DS_Store
+*.sqlite
+/identifier.sqlite

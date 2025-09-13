@@ -27,7 +27,7 @@ RUN docker-php-ext-install \
     bcmath \
     gd \
     opcache
-# Stwórz katalogi logów i nadaj uprawnienia
+
 RUN mkdir -p /var/log/app/exim4 && \
     chown www-data:www-data /var/log/app/exim4 && \
     chmod 755 /var/log/app/exim4
@@ -39,38 +39,35 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 FROM base AS dev
 RUN pecl install xdebug && \
     docker-php-ext-enable xdebug
-# Copy dev-specific configs
-# COPY ./docker/php/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
 COPY ./docker/php/php-dev.ini /usr/local/etc/php/php.ini
 
 # Production stage without xdebug
 FROM base AS prod
-# Copy prod-specific configs
 COPY ./docker/php/php-prod.ini /usr/local/etc/php/php.ini
 
-# Final stage - selects base image from ENVIRONMENT
+# Final stage - select stage based on ENVIRONMENT arg
 FROM ${ENVIRONMENT} AS final
 
-# KLUCZOWE: Pass ARG to ENV to be available as environment variables inside container
+# Pass ENVIRONMENT ARG once here
 ARG ENVIRONMENT
 ENV APP_ENV=${ENVIRONMENT}
 ENV PHP_ENV=${ENVIRONMENT}
 
-# === SEPARATION OF CONCERNS ===
-
-# 1. APPLICATION SETUP + COMPOSER INSTALL
 WORKDIR /var/www/html
+
+# Application setup
 COPY ./app/composer*.json ./
 RUN composer install --no-dev --optimize-autoloader
 COPY ./app .
 
-# 2. INFRASTRUCTURE CONFIGS (nginx, supervisor, cron)
+# Infrastructure configs
 COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
 COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/cron/crontab /tmp/crontab
 
-# 3. SYSTEM SETUP (permissions, users, directories)
+# System setup - permissions and directories
 RUN mkdir -p /var/www/html /var/log/app /var/tmp /var/cache /var/run/php && \
     chown -R www-data:www-data /var/www && \
     chown -R www-data:www-data /var/log && \
@@ -87,18 +84,18 @@ RUN mkdir -p /var/www/html /var/log/app /var/tmp /var/cache /var/run/php && \
 # Enable shell for www-data
 RUN usermod --shell /bin/bash www-data
 
-# 4. CRON SETUP
+# Cron setup
 RUN chmod 0644 /tmp/crontab && \
     crontab -u www-data /tmp/crontab && \
     rm /tmp/crontab
 
-# 5. LOGGING SETUP
+# Logging setup
 RUN touch /var/log/cron.log && \
     chown www-data:www-data /var/log/cron.log && \
     chmod 666 /var/log/cron.log && \
     chmod -R 755 /var/log/exim4
 
-# 6. PHP-FPM CONFIGURATION OVERRIDE
+# PHP-FPM configuration override
 RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "[global]" > /usr/local/etc/php-fpm.conf && \
     echo "error_log = /dev/null" >> /usr/local/etc/php-fpm.conf && \
@@ -113,7 +110,6 @@ RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "pm.start_servers = 2" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.min_spare_servers = 1" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.max_spare_servers = 3" >> /usr/local/etc/php-fpm.conf
-
 
 EXPOSE 80 9003 9001
 
