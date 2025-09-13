@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     logrotate \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -27,10 +28,10 @@ RUN docker-php-ext-install \
     bcmath \
     gd \
     opcache
-
-RUN mkdir -p /var/log/app/exim4 && \
-    chown www-data:www-data /var/log/app/exim4 && \
-    chmod 755 /var/log/app/exim4
+# Stwórz katalogi logów i nadaj uprawnienia
+RUN mkdir -p /var/log/app/exim4 /var/log/exim4 && \
+    chown www-data:www-data /var/log/app/exim4 /var/log/exim4 && \
+    chmod 755 /var/log/app/exim4 /var/log/exim4
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -39,35 +40,38 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 FROM base AS dev
 RUN pecl install xdebug && \
     docker-php-ext-enable xdebug
-
+# Copy dev-specific configs
+# COPY ./docker/php/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 COPY ./docker/php/php-dev.ini /usr/local/etc/php/php.ini
 
 # Production stage without xdebug
 FROM base AS prod
+# Copy prod-specific configs
 COPY ./docker/php/php-prod.ini /usr/local/etc/php/php.ini
 
-# Final stage - select stage based on ENVIRONMENT arg
+# Final stage - selects base image from ENVIRONMENT
 FROM ${ENVIRONMENT} AS final
 
-# Pass ENVIRONMENT ARG once here
+# KLUCZOWE: Pass ARG to ENV to be available as environment variables inside container
 ARG ENVIRONMENT
 ENV APP_ENV=${ENVIRONMENT}
 ENV PHP_ENV=${ENVIRONMENT}
 
-WORKDIR /var/www/html
+# === SEPARATION OF CONCERNS ===
 
-# Application setup
+# 1. APPLICATION SETUP + COMPOSER INSTALL
+WORKDIR /var/www/html
 COPY ./app/composer*.json ./
 RUN composer install --no-dev --optimize-autoloader
 COPY ./app .
 
-# Infrastructure configs
+# 2. INFRASTRUCTURE CONFIGS (nginx, supervisor, cron)
 COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
 COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/cron/crontab /tmp/crontab
 
-# System setup - permissions and directories
+# 3. SYSTEM SETUP (permissions, users, directories)
 RUN mkdir -p /var/www/html /var/log/app /var/tmp /var/cache /var/run/php && \
     chown -R www-data:www-data /var/www && \
     chown -R www-data:www-data /var/log && \
@@ -84,18 +88,29 @@ RUN mkdir -p /var/www/html /var/log/app /var/tmp /var/cache /var/run/php && \
 # Enable shell for www-data
 RUN usermod --shell /bin/bash www-data
 
-# Cron setup
+# 4. CRON SETUP
 RUN chmod 0644 /tmp/crontab && \
     crontab -u www-data /tmp/crontab && \
     rm /tmp/crontab
 
-# Logging setup
+# 5. LOGGING SETUP
 RUN touch /var/log/cron.log && \
+    touch /var/log/app/supervisord.log && \
     chown www-data:www-data /var/log/cron.log && \
+    chmod 755 /var/log/app/supervisord.log && \
     chmod 666 /var/log/cron.log && \
     chmod -R 755 /var/log/exim4
 
-# PHP-FPM configuration override
+# 6. SSL CERTIFICATE SETUP
+RUN mkdir -p /etc/ssl/certs /etc/ssl/private && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/ssl/private/nginx-selfsigned.key \
+    -out /etc/ssl/certs/nginx-selfsigned.crt \
+    -subj "/C=PL/ST=Poland/L=Warsaw/O=Czytelnia/OU=IT Department/CN=localhost" && \
+    chmod 600 /etc/ssl/private/nginx-selfsigned.key && \
+    chmod 644 /etc/ssl/certs/nginx-selfsigned.crt
+
+# 6. PHP-FPM CONFIGURATION OVERRIDE
 RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "[global]" > /usr/local/etc/php-fpm.conf && \
     echo "error_log = /dev/null" >> /usr/local/etc/php-fpm.conf && \
@@ -104,13 +119,17 @@ RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "[www]" >> /usr/local/etc/php-fpm.conf && \
     echo "user = www-data" >> /usr/local/etc/php-fpm.conf && \
     echo "group = www-data" >> /usr/local/etc/php-fpm.conf && \
-    echo "listen = 127.0.0.1:9000" >> /usr/local/etc/php-fpm.conf && \
+    echo "listen = /var/run/php/php-fpm.sock" >> /usr/local/etc/php-fpm.conf && \
+    echo "listen.owner = www-data" >> /usr/local/etc/php-fpm.conf && \
+    echo "listen.group = www-data" >> /usr/local/etc/php-fpm.conf && \
+    echo "listen.mode = 0660" >> /usr/local/etc/php-fpm.conf && \
     echo "pm = dynamic" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.max_children = 5" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.start_servers = 2" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.min_spare_servers = 1" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.max_spare_servers = 3" >> /usr/local/etc/php-fpm.conf
 
-EXPOSE 80 9003 9001
+
+EXPOSE 80 443 9003 9001
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

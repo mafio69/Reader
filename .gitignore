@@ -26,3 +26,4 @@
 .DS_Store
 *.sqlite
 /identifier.sqlite
+/supervisord.pid

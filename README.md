@@ -58,15 +58,20 @@ The application is fully containerized using Docker and includes WebSocket funct
    ```
 
 6. **Access the Application:**
-   The application is available at [http://localhost:8080](http://localhost:8080)
+   - HTTP: [http://localhost:8080](http://localhost:8080) (redirects to HTTPS)
+   - HTTPS: [https://localhost:8443](https://localhost:8443)
+   
+   **Note:** The application uses self-signed SSL certificates, so your browser will show a security warning. You can safely proceed by accepting the certificate.
 
 ## Available Scripts and Commands
 
 ### Web Interface
-Access the main application at [http://localhost:8080](http://localhost:8080) to:
+Access the main application at [https://localhost:8443](https://localhost:8443) to:
 - View summarized articles
 - Add new articles by URL
 - Manage article summaries
+
+**Note:** HTTP requests to port 8080 are automatically redirected to HTTPS.
 
 ### Command Line Interface (CLI)
 
@@ -202,6 +207,20 @@ docker run --name reader-mf reader-prod
 ```
 
 **Note:** These commands are for true production deployment without port mapping or volume mounting, as the application and its dependencies are built into the container image.
+
+### HTTPS/SSL Configuration
+
+The application is configured to run with HTTPS by default:
+
+- **Self-signed certificates** are automatically generated during Docker build
+- **HTTP to HTTPS redirect** is enforced (port 80 → 443)
+- **Strong SSL settings** including TLS 1.2+ and secure cipher suites
+- **Development access:** HTTPS on port 8443, HTTP on port 8080 (redirects)
+
+For production deployment with custom certificates:
+1. Replace the self-signed certificates in `/etc/ssl/certs/` and `/etc/ssl/private/`
+2. Update nginx configuration if using different certificate paths
+3. Consider using Let's Encrypt or a reverse proxy (e.g., Traefik, nginx-proxy)
 
 ### Logging
 Application logs are mounted to the `./logs` directory:
