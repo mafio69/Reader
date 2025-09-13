@@ -12,6 +12,7 @@
         "doctrine/doctrine-bundle": "^2.16.2",
         "doctrine/doctrine-migrations-bundle": "^3.4.2",
         "doctrine/orm": "^3.5.2",
+        "php-cs-fixer/shim": "^3.87",
         "symfony/console": "7.3.*",
         "symfony/css-selector": "7.3.*",
         "symfony/dom-crawler": "7.3.*",
@@ -21,12 +22,12 @@
         "symfony/framework-bundle": "7.3.*",
         "symfony/http-client": "7.3.*",
         "symfony/http-foundation": "7.3.*",
+        "symfony/maker-bundle": "^1.64",
         "symfony/monolog-bundle": "^3.10",
         "symfony/runtime": "7.3.*",
         "symfony/twig-bundle": "7.3.*",
         "symfony/validator": "7.3.*",
-        "symfony/yaml": "7.3.*",
-        "symfony/maker-bundle": "^1.64"
+        "symfony/yaml": "7.3.*"
     },
     "require-dev": {
         "phpunit/phpunit": ">=12.3.10",

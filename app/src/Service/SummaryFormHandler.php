@@ -23,7 +23,7 @@ class SummaryFormHandler
         ArticleManager $articleManager,
         LoggerInterface $logger,
         SessionInterface $session,
-        UrlGeneratorInterface $urlGenerator
+        UrlGeneratorInterface $urlGenerator,
     ) {
         $this->formFactory = $formFactory;
         $this->articleManager = $articleManager;
@@ -45,13 +45,15 @@ class SummaryFormHandler
                 $this->articleManager->summarizeAndSave($articleSummary);
 
                 $this->session->get('flash_bag')->add('success', 'Artykuł został pomyślnie streszczony i zapisany!');
+
                 return [
                     'success' => true,
-                    'redirectToRoute' => $this->urlGenerator->generate('app_summary_index')
+                    'redirectToRoute' => $this->urlGenerator->generate('app_summary_index'),
                 ];
             } catch (\Exception $e) {
                 $this->logger->error(sprintf('Błąd podczas obsługi formularza streszczenia: %s', $e->getMessage()));
                 $this->session->get('flash_bag')->add('error', 'Wystąpił błąd podczas streszczania artykułu. Sprawdź logi aplikacji.');
+
                 return ['success' => false, 'form' => $form];
             }
         }

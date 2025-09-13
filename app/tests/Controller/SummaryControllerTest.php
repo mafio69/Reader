@@ -3,13 +3,10 @@
 namespace App\Tests\Controller;
 
 use App\Entity\ArticleSummary;
-use App\Repository\ArticleSummaryRepository;
-use App\Service\ArticleManager;
 use App\Service\SummaryFormHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 class SummaryControllerTest extends WebTestCase
 {
@@ -32,7 +29,7 @@ class SummaryControllerTest extends WebTestCase
             ->method('handle')
             ->willReturn([
                 'success' => true,
-                'redirectToRoute' => '/summary/'
+                'redirectToRoute' => '/summary/',
             ]);
         self::getContainer()->set(SummaryFormHandler::class, $summaryFormHandler);
 
@@ -52,7 +49,7 @@ class SummaryControllerTest extends WebTestCase
             ->method('handle')
             ->willReturn([
                 'success' => false,
-                'form' => $mockForm
+                'form' => $mockForm,
             ]);
         self::getContainer()->set(SummaryFormHandler::class, $summaryFormHandler);
 
@@ -75,8 +72,7 @@ class SummaryControllerTest extends WebTestCase
         $entityManager->persist($summary);
         $entityManager->flush();
 
-
-        $client->request('GET', '/summary/' . $summary->getId());
+        $client->request('GET', '/summary/'.$summary->getId());
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h5', 'Streszczenie artykułu');

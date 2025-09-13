@@ -3,8 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\ArticleSummary;
-use App\Form\SummaryFormType;
-use App\Service\ArticleManager;
 use App\Service\SummaryFormHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

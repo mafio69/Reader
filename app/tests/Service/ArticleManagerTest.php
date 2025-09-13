@@ -45,9 +45,9 @@ class ArticleManagerTest extends TestCase
         $this->entityManager->expects($this->once())
             ->method('persist')
             ->with($this->callback(function ($entity) use ($summaryText) {
-                return $entity instanceof ArticleSummary &&
-                       $entity->getSummary() === $summaryText &&
-                       $entity->getCreatedAt() instanceof \DateTimeImmutable;
+                return $entity instanceof ArticleSummary
+                       && $entity->getSummary() === $summaryText
+                       && $entity->getCreatedAt() instanceof \DateTimeImmutable;
             }));
 
         $this->entityManager->expects($this->once())

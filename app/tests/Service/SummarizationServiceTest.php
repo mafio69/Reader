@@ -59,11 +59,11 @@ class SummarizationServiceTest extends TestCase
                 [
                     'content' => [
                         'parts' => [
-                            ['text' => 'Streszczenie testowe.']
-                        ]
-                    ]
-                ]
-            ]
+                            ['text' => 'Streszczenie testowe.'],
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $responseMock = $this->createMock(ResponseInterface::class);
@@ -103,15 +103,15 @@ class SummarizationServiceTest extends TestCase
 
         $responseMockGemini = $this->createMock(ResponseInterface::class);
         $responseMockGemini->method('toArray')->willReturn([
-            'candidates' => [['content' => ['parts' => [['text' => $geminiSummary]]]]]
+            'candidates' => [['content' => ['parts' => [['text' => $geminiSummary]]]]],
         ]);
 
         $this->httpClientMock->method('request')
             ->willReturnCallback(function ($method, $url) use ($responseMockHtml, $responseMockGemini) {
-                if ($method === 'GET' && $url === 'http://example.com/integration') {
+                if ('GET' === $method && 'http://example.com/integration' === $url) {
                     return $responseMockHtml;
                 }
-                if ($method === 'POST' && str_contains($url, 'gemini-pro:generateContent')) {
+                if ('POST' === $method && str_contains($url, 'gemini-pro:generateContent')) {
                     return $responseMockGemini;
                 }
                 $this->fail("Unexpected HTTP request: $method $url");

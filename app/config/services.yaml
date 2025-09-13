@@ -36,14 +36,15 @@ when@test:
                 - '@session.attribute_bag'
                 - '@session.flash_bag'
 
-        session.storage.test:
+        session_storage_test:
             class: Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage
 
-        session.attribute_bag:
+        session_attribute_bag:
             class: Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag
 
-        session.flash_bag:
+        session_flash_bag:
             class: Symfony\Component\HttpFoundation\Session\Flash\FlashBag
 
-        Symfony\Component\HttpFoundation\Session\SessionInterface:
+
+            Symfony\Component\HttpFoundation\Session\SessionInterface:
             alias: session.test

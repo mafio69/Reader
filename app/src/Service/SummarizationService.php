@@ -3,8 +3,8 @@
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class SummarizationService
 {
@@ -53,6 +53,7 @@ class SummarizationService
 
             if (empty($text)) {
                 $this->logger->warning('SummarizationService: Could not extract any text from the URL.');
+
                 return null;
             }
 
@@ -62,26 +63,27 @@ class SummarizationService
 
             return $text;
         } catch (\Exception $e) {
-            $this->logger->error('SummarizationService: Exception while fetching/cleaning article: ' . $e->getMessage());
+            $this->logger->error('SummarizationService: Exception while fetching/cleaning article: '.$e->getMessage());
+
             return null;
         }
     }
 
     private function callGeminiApi(string $text): ?string
     {
-        $prompt = "Streszcz ten tekst w języku polskim, w maksymalnie 3-4 zdaniach: " . $text;
+        $prompt = 'Streszcz ten tekst w języku polskim, w maksymalnie 3-4 zdaniach: '.$text;
 
         try {
-            $response = $this->httpClient->request('POST', "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" . $this->googleApiKey, [
+            $response = $this->httpClient->request('POST', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='.$this->googleApiKey, [
                 'json' => [
                     'contents' => [
                         [
                             'parts' => [
-                                ['text' => $prompt]
-                            ]
-                        ]
-                    ]
-                ]
+                                ['text' => $prompt],
+                            ],
+                        ],
+                    ],
+                ],
             ]);
 
             $data = $response->toArray();
