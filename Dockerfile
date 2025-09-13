@@ -1,5 +1,5 @@
 # Build argument for environment (dev or production)
-ARG ENVIRONMENT=dev
+ARG ENVIRONMENT=prod
 
 FROM php:8.3-fpm AS base
 

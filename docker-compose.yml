@@ -11,6 +11,7 @@ services:
     environment:
       - PHP_IDE_CONFIG=serverName=Docker
       - TZ=Europe/Warsaw
+      - ENVIRONMENT=dev
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
