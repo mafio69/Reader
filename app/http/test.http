@@ -1,6 +1,6 @@
 ###
 # @name createNewResource
-POST http://localhost:8000/summary/new
+POST http://localhost:9999/summary/new
 Content-Type: application/json
 
 {

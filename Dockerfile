@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     logrotate \
-    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -29,9 +28,9 @@ RUN docker-php-ext-install \
     gd \
     opcache
 # Stwórz katalogi logów i nadaj uprawnienia
-RUN mkdir -p /var/log/app/exim4 /var/log/exim4 && \
-    chown www-data:www-data /var/log/app/exim4 /var/log/exim4 && \
-    chmod 755 /var/log/app/exim4 /var/log/exim4
+RUN mkdir -p /var/log/app/exim4 && \
+    chown www-data:www-data /var/log/app/exim4 && \
+    chmod 755 /var/log/app/exim4
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -63,15 +62,9 @@ ENV PHP_ENV=${ENVIRONMENT}
 WORKDIR /var/www/html
 COPY ./app/composer*.json ./
 RUN composer install --no-dev --optimize-autoloader
-COPY ./app .
 
-# 2. INFRASTRUCTURE CONFIGS (nginx, supervisor, cron)
-COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
-COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/cron/crontab /tmp/crontab
 
-# 3. SYSTEM SETUP (permissions, users, directories)
+# 2. SYSTEM SETUP (permissions, users, directories)
 RUN mkdir -p /var/www/html /var/log/app /var/tmp /var/cache /var/run/php && \
     chown -R www-data:www-data /var/www && \
     chown -R www-data:www-data /var/log && \
@@ -88,28 +81,24 @@ RUN mkdir -p /var/www/html /var/log/app /var/tmp /var/cache /var/run/php && \
 # Enable shell for www-data
 RUN usermod --shell /bin/bash www-data
 
-# 4. CRON SETUP
+# 3. CRON SETUP
+COPY ./docker/cron/crontab /tmp/crontab
+
 RUN chmod 0644 /tmp/crontab && \
     crontab -u www-data /tmp/crontab && \
     rm /tmp/crontab
 
-# 5. LOGGING SETUP
+# 4. LOGGING SETUP
 RUN touch /var/log/cron.log && \
-    touch /var/log/app/supervisord.log && \
     chown www-data:www-data /var/log/cron.log && \
-    chmod 755 /var/log/app/supervisord.log && \
     chmod 666 /var/log/cron.log && \
     chmod -R 755 /var/log/exim4
 
-# 6. SSL CERTIFICATE SETUP
-RUN mkdir -p /etc/ssl/certs /etc/ssl/private && \
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/ssl/private/nginx-selfsigned.key \
-    -out /etc/ssl/certs/nginx-selfsigned.crt \
-    -subj "/C=PL/ST=Poland/L=Warsaw/O=Czytelnia/OU=IT Department/CN=localhost" && \
-    chmod 600 /etc/ssl/private/nginx-selfsigned.key && \
-    chmod 644 /etc/ssl/certs/nginx-selfsigned.crt
-
+# 5. INFRASTRUCTURE CONFIGS (nginx, supervisor, cron)
+COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx/app.conf /etc/nginx/conf.d/app.conf
+COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./app .
 # 6. PHP-FPM CONFIGURATION OVERRIDE
 RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "[global]" > /usr/local/etc/php-fpm.conf && \
@@ -119,10 +108,7 @@ RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "[www]" >> /usr/local/etc/php-fpm.conf && \
     echo "user = www-data" >> /usr/local/etc/php-fpm.conf && \
     echo "group = www-data" >> /usr/local/etc/php-fpm.conf && \
-    echo "listen = /var/run/php/php-fpm.sock" >> /usr/local/etc/php-fpm.conf && \
-    echo "listen.owner = www-data" >> /usr/local/etc/php-fpm.conf && \
-    echo "listen.group = www-data" >> /usr/local/etc/php-fpm.conf && \
-    echo "listen.mode = 0660" >> /usr/local/etc/php-fpm.conf && \
+    echo "listen = 127.0.0.1:9000" >> /usr/local/etc/php-fpm.conf && \
     echo "pm = dynamic" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.max_children = 5" >> /usr/local/etc/php-fpm.conf && \
     echo "pm.start_servers = 2" >> /usr/local/etc/php-fpm.conf && \
@@ -130,6 +116,6 @@ RUN rm -rf /usr/local/etc/php-fpm.conf /usr/local/etc/php-fpm.d/* && \
     echo "pm.max_spare_servers = 3" >> /usr/local/etc/php-fpm.conf
 
 
-EXPOSE 80 443 9003 9001
+EXPOSE 80 9003 9001
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

@@ -8,6 +8,19 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
+
+        # SQLite optimizations to reduce database locking
+        options:
+            # Enable WAL mode for better concurrency (Write-Ahead Logging)
+#            1000: 'PRAGMA journal_mode=WAL'
+#            # Set busy timeout to 30 seconds (30000 milliseconds)
+#            1001: 'PRAGMA busy_timeout=30000'
+#            # Optimize cache size for better performance
+#            1002: 'PRAGMA cache_size=10000'
+#            # Enable foreign key constraints
+#            1003: 'PRAGMA foreign_keys=ON'
+#            # Set synchronous mode to NORMAL for better performance while maintaining safety
+#            1004: 'PRAGMA synchronous=NORMAL'
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

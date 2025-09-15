@@ -7,6 +7,7 @@ use App\Form\SummaryFormType;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -22,13 +23,13 @@ class SummaryFormHandler
         FormFactoryInterface $formFactory,
         ArticleManager $articleManager,
         LoggerInterface $logger,
-        SessionInterface $session,
+        RequestStack $requestStack,
         UrlGeneratorInterface $urlGenerator,
     ) {
         $this->formFactory = $formFactory;
         $this->articleManager = $articleManager;
         $this->logger = $logger;
-        $this->session = $session;
+        $this->session = $requestStack->getSession();
         $this->urlGenerator = $urlGenerator;
     }
 

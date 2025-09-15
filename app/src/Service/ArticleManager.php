@@ -11,12 +11,18 @@ class ArticleManager
     private SummarizationService $summarizationService;
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
+    private DatabaseConnectionManager $connectionManager;
 
-    public function __construct(SummarizationService $summarizationService, EntityManagerInterface $entityManager, LoggerInterface $logger)
-    {
+    public function __construct(
+        SummarizationService $summarizationService,
+        EntityManagerInterface $entityManager,
+        LoggerInterface $logger,
+        DatabaseConnectionManager $connectionManager
+    ) {
         $this->summarizationService = $summarizationService;
         $this->entityManager = $entityManager;
         $this->logger = $logger;
+        $this->connectionManager = $connectionManager;
     }
 
     public function summarizeAndSave(ArticleSummary $articleSummary): void
@@ -37,13 +43,22 @@ class ArticleManager
         $articleSummary->setSummary($summaryText);
         $articleSummary->setCreatedAt(new \DateTimeImmutable());
 
-        try {
-            $this->entityManager->persist($articleSummary);
-            $this->entityManager->flush();
-            $this->logger->info(sprintf('ArticleManager: Artykuł z URL %s został pomyślnie streszczony i zapisany.', $originalUrl));
-        } catch (\Exception $e) {
-            $this->logger->error(sprintf('ArticleManager: Błąd podczas zapisywania streszczenia dla URL %s: %s', $originalUrl, $e->getMessage()));
-            throw $e; // Re-throw the exception to be caught by the controller
-        }
+        // Use DatabaseConnectionManager for robust database operations with retry logic
+        $this->connectionManager->executeWithRetry(function() use ($articleSummary, $originalUrl) {
+            $this->entityManager->beginTransaction();
+
+            try {
+                $this->entityManager->persist($articleSummary);
+                $this->entityManager->flush();
+                $this->entityManager->commit();
+
+                $this->logger->info(sprintf('ArticleManager: Artykuł z URL %s został pomyślnie streszczony i zapisany.', $originalUrl));
+            } catch (\Exception $e) {
+                if ($this->entityManager->getConnection()->isTransactionActive()) {
+                    $this->entityManager->rollback();
+                }
+                throw $e;
+            }
+        });
     }
 }
