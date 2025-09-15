@@ -17,7 +17,7 @@ class ArticleManager
         SummarizationService $summarizationService,
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
-        DatabaseConnectionManager $connectionManager
+        DatabaseConnectionManager $connectionManager,
     ) {
         $this->summarizationService = $summarizationService;
         $this->entityManager = $entityManager;
@@ -44,7 +44,7 @@ class ArticleManager
         $articleSummary->setCreatedAt(new \DateTimeImmutable());
 
         // Use DatabaseConnectionManager for robust database operations with retry logic
-        $this->connectionManager->executeWithRetry(function() use ($articleSummary, $originalUrl) {
+        $this->connectionManager->executeWithRetry(function () use ($articleSummary, $originalUrl) {
             $this->entityManager->beginTransaction();
 
             try {

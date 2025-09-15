@@ -20,6 +20,28 @@ The application is fully containerized using Docker and includes WebSocket funct
 - **WebSocket:** amphp/websocket-client
 - **Additional:** Cron support, Xdebug (development)
 
+## Code Style
+
+This project uses [PHP-CS-Fixer](https://github.com/PHP-CS-Fixer/PHP-CS-Fixer) to enforce coding standards. The rules are based on the `@Symfony` ruleset, which follows the [PER-CS2.0](https://www.php-fig.org/per/coding-style/) standard.
+
+All commands should be run from within the `app/` directory (or by using `docker-compose exec`).
+
+### Check for Violations
+
+To check for style violations without applying any changes (dry run), run the following command:
+
+```bash
+docker-compose exec web vendor/bin/php-cs-fixer fix --dry-run --diff
+```
+
+### Apply Fixes
+
+To automatically fix all style violations, run:
+
+```bash
+docker-compose exec web vendor/bin/php-cs-fixer fix
+```
+
 ## Requirements
 
 - Docker
@@ -134,11 +156,6 @@ docker-compose exec web php bin/phpunit
 docker-compose exec web php bin/phpunit tests/Unit
 docker-compose exec web php bin/phpunit tests/Integration
 ```
-
-### Test Structure
-- `tests/Command/` - Command tests
-- `tests/Controller/` - Controller integration tests  
-- `tests/Service/` - Service unit tests
 
 Test coverage includes:
 - Article management functionality

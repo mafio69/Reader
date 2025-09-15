@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Service to manage database connections and handle SQLite-specific optimizations
- * to prevent database locking issues
+ * to prevent database locking issues.
  */
 class DatabaseConnectionManager
 {
@@ -22,7 +22,7 @@ class DatabaseConnectionManager
     }
 
     /**
-     * Execute a callback with proper connection management and retry logic for SQLite
+     * Execute a callback with proper connection management and retry logic for SQLite.
      */
     public function executeWithRetry(callable $callback, int $maxRetries = 3): mixed
     {
@@ -30,7 +30,7 @@ class DatabaseConnectionManager
         $lastException = null;
 
         while ($attempt < $maxRetries) {
-            $attempt++;
+            ++$attempt;
 
             try {
                 // Ensure connection is established and optimized
@@ -40,8 +40,8 @@ class DatabaseConnectionManager
                 $result = $callback();
 
                 $this->logger->debug(sprintf('DatabaseConnectionManager: Operation completed successfully on attempt %d', $attempt));
-                return $result;
 
+                return $result;
             } catch (\Exception $e) {
                 $lastException = $e;
 
@@ -72,7 +72,7 @@ class DatabaseConnectionManager
     }
 
     /**
-     * Optimize SQLite connection settings
+     * Optimize SQLite connection settings.
      */
     private function optimizeConnection(): void
     {
@@ -84,17 +84,16 @@ class DatabaseConnectionManager
             }
 
             // Apply SQLite optimizations if not already applied
-            if (strpos($connection->getDatabasePlatform()->getName(), 'sqlite') !== false) {
+            if (false !== strpos($connection->getDatabasePlatform()->getName(), 'sqlite')) {
                 $this->applySqliteOptimizations($connection);
             }
-
         } catch (\Exception $e) {
             $this->logger->warning(sprintf('DatabaseConnectionManager: Failed to optimize connection: %s', $e->getMessage()));
         }
     }
 
     /**
-     * Apply SQLite-specific optimizations
+     * Apply SQLite-specific optimizations.
      */
     private function applySqliteOptimizations(Connection $connection): void
     {
@@ -107,14 +106,13 @@ class DatabaseConnectionManager
             $connection->executeStatement('PRAGMA mmap_size=268435456'); // 256MB mmap
 
             $this->logger->debug('DatabaseConnectionManager: SQLite optimizations applied');
-
         } catch (\Exception $e) {
             $this->logger->warning(sprintf('DatabaseConnectionManager: Failed to apply SQLite optimizations: %s', $e->getMessage()));
         }
     }
 
     /**
-     * Close the database connection to release locks
+     * Close the database connection to release locks.
      */
     private function closeConnection(): void
     {
@@ -130,27 +128,26 @@ class DatabaseConnectionManager
                 $connection->close();
                 $this->logger->debug('DatabaseConnectionManager: Connection closed to release locks');
             }
-
         } catch (\Exception $e) {
             $this->logger->warning(sprintf('DatabaseConnectionManager: Failed to close connection: %s', $e->getMessage()));
         }
     }
 
     /**
-     * Check if the exception is related to SQLite locking
+     * Check if the exception is related to SQLite locking.
      */
     private function isSqliteLockingError(\Exception $e): bool
     {
         $message = strtolower($e->getMessage());
 
-        return strpos($message, 'database is locked') !== false
-            || strpos($message, 'sqlite_busy') !== false
-            || strpos($message, 'database file is locked') !== false
-            || strpos($message, 'sql logic error') !== false;
+        return false !== strpos($message, 'database is locked')
+            || false !== strpos($message, 'sqlite_busy')
+            || false !== strpos($message, 'database file is locked')
+            || false !== strpos($message, 'sql logic error');
     }
 
     /**
-     * Get connection statistics for monitoring
+     * Get connection statistics for monitoring.
      */
     public function getConnectionStats(): array
     {
@@ -163,9 +160,9 @@ class DatabaseConnectionManager
                 'database_platform' => $connection->getDatabasePlatform()->getName(),
                 'driver_name' => $connection->getDriver()->getName(),
             ];
-
         } catch (\Exception $e) {
             $this->logger->warning(sprintf('DatabaseConnectionManager: Failed to get connection stats: %s', $e->getMessage()));
+
             return ['error' => $e->getMessage()];
         }
     }

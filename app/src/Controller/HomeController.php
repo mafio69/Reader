@@ -1,13 +1,12 @@
 <?php
 
 namespace App\Controller;
-use Symfony\Flex\Response;
 
-
-class HomeController {
+class HomeController
+{
     #[Route('/')]
-    function home()
+    public function home()
     {
-       echo "Hello World " ;
+        echo 'Hello World ';
     }
 }
